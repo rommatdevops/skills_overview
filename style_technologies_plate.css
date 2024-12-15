@@ -41,9 +41,9 @@ body {
 .buttons {
   max-width: 500px;
   width: 100%;
-  border-radius: 20px;
-  background-color: #00000050;
-  border: 1px solid #ffffff30;
+  /* border-radius: 20px; */
+  /* background-color: #00000050; */
+  /* border: 1px solid #ffffff30; */
   padding: 2rem;
   backdrop-filter: blur(12px);
   display: grid;
@@ -121,6 +121,11 @@ body {
   opacity: 50%;
   scale: 85%;
   z-index: -10;
+}
+
+.header1 {
+    text-align: center;
+    color: #ddd;
 }
 
 @media (prefers-reduced-motion: no-preference) {
