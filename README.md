@@ -1,6 +1,6 @@
 # **Static Web Project with Docker**
 
-This project is a static web application designed for deployment using Docker. The application contains an HTML page, JavaScript, and CSS files, which are served via an Apache HTTP server running inside a Docker container.
+This project is a static web application designed for deployment using Docker and GitHub Actions. The application contains an HTML page, JavaScript, and CSS files, which are served via an Apache HTTP server running inside a Docker container.
 
 ## **Features**
 - 📄 **HTML**: Core structure of the web page.
