@@ -1,7 +1,7 @@
 runtime: python39
 
 handlers:
-  - url: /index.html
+  - url: /
     static_dir: src
 
 automatic_scaling:
