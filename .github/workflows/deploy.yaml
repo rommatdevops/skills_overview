@@ -1,24 +1,31 @@
-name: Deploy static site to GAE 
+name: Deploy static site to GAE
 
-on:   
-  push: 
-    branches: [main] 
+on:
+  push:
+    branches: [main]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: PROD
     steps:
-      - name: Checkout code 
-        uses: actions/checkout@v4 
-      
-      - name: Authenticate to GCP 
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
-      
-      - name: Setup gcloud CLI 
-        uses: google-github-actions/setup-gcloud@v2 
 
-      - name: Deploy to GAE 
-        run: gcloud app deploy --quiet
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Initialize App Engine (only first time)
+        run: |
+          gcloud app describe --project=${{ secrets.GCP_PROJECT_ID }} || \
+          gcloud app create --project=${{ secrets.GCP_PROJECT_ID }} --region=europe-west1
+
+      - name: Deploy to GAE
+        run: gcloud app deploy --quiet --project=${{ secrets.GCP_PROJECT_ID }}
