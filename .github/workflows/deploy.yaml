@@ -10,7 +10,7 @@ permissions:
 
 env:
   VERSION: sha-${{ github.sha }}
-  VERSION_URL: https://${{ env.VERSION }}-dot-${{ vars.GAE_SERVICE }}-dot-${{ vars.GCP_PROJECT }}.${{ vars.GAE_REGION }}.r.appspot.com/
+  VERSION_URL: https://sha-${{ github.sha }}-dot-${{ vars.GAE_SERVICE }}-dot-${{ vars.GCP_PROJECT }}.${{ vars.GAE_REGION }}.r.appspot.com/
 
 jobs:
   deploy:
