@@ -92,6 +92,65 @@ jobs:
             --splits "${VERSION}=1" \
             --quiet
 
+      - name: Prune old App Engine versions (keep 2)
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Потрібен jq; на ubuntu-latest він зазвичай є, але підстрахуємось
+          if ! command -v jq >/dev/null 2>&1; then
+            sudo apt-get update -y && sudo apt-get install -y jq
+          fi
+
+          echo "Fetching versions for service: ${{ vars.GAE_SERVICE }}"
+          versions_json="$(gcloud app versions list \
+            --project "${{ vars.GCP_PROJECT }}" \
+            --service "${{ vars.GAE_SERVICE }}" \
+            --format=json)"
+
+          total="$(jq 'length' <<<"$versions_json")"
+          echo "Total versions: $total"
+          if [[ "$total" -le 2 ]]; then
+            echo "Nothing to prune."
+            exit 0
+          fi
+
+          # Відсортуємо від найстарішої до найновішої за часом деплою
+          # і зберемо пари: id + traffic_split (0 якщо null)
+          mapfile -t ordered <<<"$(jq -r '
+            sort_by(.deployment.createTime)
+            | .[]
+            | "\(.id) \(.traffic_split // 0)"
+          ' <<<"$versions_json")"
+
+          to_delete=$(( total - 2 ))
+          echo "Need to delete $to_delete old version(s) (keeping 2 newest)."
+
+          for row in "${ordered[@]}"; do
+            vid="$(awk '{print $1}' <<<"$row")"
+            traffic="$(awk '{print $2}' <<<"$row")"
+            # Пропускаємо, якщо вже достатньо видалили
+            [[ "$to_delete" -le 0 ]] && break
+            # Не видаляємо версії, що несуть трафік
+            if [[ "$traffic" != "0" && "$traffic" != "0.0" ]]; then
+              echo "Skip ${vid}: has traffic=${traffic}"
+              continue
+            fi
+            # Не видаляємо 2 найновіші: вони наприкінці списку.
+            # Ми йдемо з найстаріших до найновіших, тож видаляємо лише поки to_delete>0.
+            echo "Deleting old version: ${vid}"
+            gcloud app versions delete "${vid}" \
+              --project "${{ vars.GCP_PROJECT }}" \
+              --service "${{ vars.GAE_SERVICE }}" \
+              --quiet
+            to_delete=$(( to_delete - 1 ))
+          done
+
+          if [[ "$to_delete" -gt 0 ]]; then
+            echo "WARNING: Still $to_delete extra version(s) present but carrying traffic; not deleted."
+            echo "You can reduce traffic splits or promote, then re-run pruning."
+          fi
+
+
       - name: List versions
         run: |
           gcloud app versions list \
